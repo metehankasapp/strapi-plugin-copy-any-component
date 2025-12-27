@@ -1,5 +1,5 @@
 {
-  "name": "@strapi/plugin-copy-any-component",
+  "name": "@metehankasap/strapi-plugin-copy-any-component",
   "version": "1.0.0",
   "description": "A powerful Strapi plugin that allows you to copy and reorder components (sections) between pages using an intuitive drag-and-drop interface. Works with any content type and dynamic zone - no code required!",
   "keywords": [
