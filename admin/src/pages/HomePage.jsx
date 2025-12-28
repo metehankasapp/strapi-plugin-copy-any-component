@@ -37,7 +37,7 @@ const HomePage = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [publishing, setPublishing] = useState(false);
   
-  // Content Type yapılandırması
+  // Content Type configuration
   const [contentTypes, setContentTypes] = useState([]);
   const [currentConfig, setCurrentConfig] = useState({ contentType: '', dynamicZoneField: '' });
   const [selectedContentType, setSelectedContentType] = useState('');
@@ -47,7 +47,7 @@ const HomePage = () => {
   
   const { get, post, put } = useFetchClient();
 
-  // Content type'ları yükle
+  // Load content types
   useEffect(() => {
     const fetchContentTypes = async () => {
       try {
@@ -65,7 +65,7 @@ const HomePage = () => {
     fetchContentTypes();
   }, [get]);
 
-  // Sayfaları yükle
+  // Load pages
   useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -78,7 +78,7 @@ const HomePage = () => {
     fetchPages();
   }, [get, currentConfig]);
   
-  // Content type yapılandırmasını güncelle
+  // Update content type configuration
   const handleConfigUpdate = async () => {
     if (!selectedContentType || !selectedDynamicZone) {
       setMessage({ type: "warning", text: "Please select content type and dynamic zone" });
@@ -99,7 +99,7 @@ const HomePage = () => {
         });
         setMessage({ type: "success", text: "Configuration updated! Pages are reloading..." });
         
-        // Sayfaları yeniden yükle
+        // Reload pages
         const pagesRes = await get(`/${PLUGIN_ID}/pages`);
         setPages(pagesRes.data?.data || []);
         setSourcePageId("");
@@ -115,7 +115,7 @@ const HomePage = () => {
     }
   };
   
-  // Seçilen content type'a göre dynamic zone'ları getir
+  // Get dynamic zones based on selected content type
   const getAvailableDynamicZones = () => {
     const ct = contentTypes.find(c => c.uid === selectedContentType);
     return ct?.dynamicZones || [];
@@ -300,7 +300,7 @@ const HomePage = () => {
   }, [sourcePageId, targetPageId, targetSections, post, put, loadTargetSections, loadSourceSections]);
 
   const getPageTitle = (page) => {
-    // Farklı content type'larda farklı field adları olabilir
+    // Different content types may have different field names
     return page.attributes?.title || page.title || 
            page.attributes?.name || page.name ||
            page.attributes?.heading || page.heading ||
@@ -426,7 +426,7 @@ const HomePage = () => {
                         value={selectedContentType}
                         onChange={val => {
                           setSelectedContentType(val);
-                          // İlk dynamic zone'u otomatik seç
+                          // Automatically select the first dynamic zone
                           const ct = contentTypes.find(c => c.uid === val);
                           if (ct?.dynamicZones?.length > 0) {
                             setSelectedDynamicZone(ct.dynamicZones[0].name);
@@ -680,7 +680,7 @@ const HomePage = () => {
                               </Flex>
                               <Box padding={3} background="neutral100" hasRadius marginBottom={2}>
                                 <Typography variant="omega" textColor="neutral600" style={{ fontSize: '12px' }}>
-                                  💡 Aşağıdaki alanlar otomatik olarak yönetiliyor. ID'ler silinir ve Strapi yeni benzersiz ID'ler oluşturur. Bu normal bir davranıştır ve veri kaybına neden olmaz.
+                                  💡 The following fields are automatically managed. IDs are removed and Strapi creates new unique IDs. This is normal behavior and does not cause data loss.
                                 </Typography>
                               </Box>
                               <Box style={{ maxHeight: "150px", overflowY: "auto" }}>
@@ -696,8 +696,8 @@ const HomePage = () => {
                                         </Typography>
                                         <Typography variant="omega" textColor="neutral500" style={{ fontSize: '11px' }}>
                                           {field.reason === 'System field (automatically removed)' 
-                                            ? 'Sistem alanı - Yeni ID atanacak' 
-                                            : 'Nested ID - Otomatik oluşturulacak'}
+                                            ? 'System field - New ID will be assigned' 
+                                            : 'Nested ID - Will be automatically created'}
                                         </Typography>
                                       </Box>
                                     </Flex>

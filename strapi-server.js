@@ -3,22 +3,6 @@
 const contentApiRoutes = [
   {
     method: "GET",
-    path: "/hello",
-    handler: "controller.hello",
-    config: {
-      policies: [],
-    },
-  },
-  {
-    method: "GET",
-    path: "/greet/:name",
-    handler: "controller.greet",
-    config: {
-      policies: [],
-    },
-  },
-  {
-    method: "GET",
     path: "/pages/:pageId/sections",
     handler: "controller.getPageSections",
     config: {
@@ -33,19 +17,11 @@ const contentApiRoutes = [
       policies: [],
     },
   },
-  {
-    method: "POST",
-    path: "/pages/:sourcePageId/move-to/:targetPageId",
-    handler: "controller.moveSections",
-    config: {
-      policies: [],
-    },
-  },
 ];
 
 const componentCopyService = require("./server/src/services/component-copy");
 
-// Helper: Content type'dan display field'ı bul
+// Helper: Find display field from content type
 const getDisplayField = (page) => {
   const possibleFields = ['title', 'name', 'heading', 'label', 'displayName', 'slug'];
   for (const field of possibleFields) {
@@ -55,36 +31,20 @@ const getDisplayField = (page) => {
 };
 
 const controller = ({ strapi }) => ({
-  async hello(ctx) {
-    ctx.body = {
-      message: "Hello from my plugin! 👋",
-      timestamp: new Date().toISOString(),
-      plugin: "copy-any-component",
-    };
-  },
-
-  async greet(ctx) {
-    const { name } = ctx.params;
-    ctx.body = {
-      message: `Merhaba, ${name}! 🎉`,
-      timestamp: new Date().toISOString(),
-    };
-  },
-
-  // 🔍 Tüm content type'ları ve dynamic zone'larını listele
+  // 🔍 List all content types and dynamic zones
   async getContentTypes(ctx) {
     try {
       const contentTypes = [];
       
       // Strapi content type registry'sini tara
       for (const [uid, contentType] of Object.entries(strapi.contentTypes)) {
-        // Sadece api:: ile başlayan content type'ları al (custom content types)
+        // Only get content types starting with api:: (custom content types)
         if (!uid.startsWith('api::')) continue;
         
         const dynamicZones = [];
         const attributes = contentType.attributes || {};
         
-        // Dynamic zone attribute'larını bul
+        // Find dynamic zone attributes
         for (const [attrName, attrConfig] of Object.entries(attributes)) {
           if (attrConfig.type === 'dynamiczone') {
             dynamicZones.push({
@@ -94,7 +54,7 @@ const controller = ({ strapi }) => ({
           }
         }
         
-        // Sadece dynamic zone içeren content type'ları ekle
+        // Only add content types that contain dynamic zones
         if (dynamicZones.length > 0) {
           contentTypes.push({
             uid,
@@ -107,7 +67,7 @@ const controller = ({ strapi }) => ({
         }
       }
       
-      // Önce Strapi Store'dan kaydedilmiş ayarları oku
+      // First, read saved settings from Strapi Store
       const pluginStore = strapi.store({
         environment: '',
         type: 'plugin',
@@ -116,14 +76,14 @@ const controller = ({ strapi }) => ({
       
       const savedSettings = await pluginStore.get({ key: 'settings' });
       
-      // Config dosyasından varsayılanları al
+      // Get defaults from config file
       const pluginConfig = strapi.config.get('plugin::copy-any-component') || {};
       
-      // Öncelik: 1. Store'dan kaydedilmiş, 2. Config dosyasından, 3. Varsayılan
+      // Priority: 1. Saved from Store, 2. From config file, 3. Default
       const currentConfig = {
         contentType: savedSettings?.contentType || pluginConfig.contentType || 'api::page.page',
         dynamicZoneField: savedSettings?.dynamicZoneField || pluginConfig.dynamicZoneField || 'sections',
-        savedInStore: !!savedSettings, // Kullanıcıya bilgi vermek için
+        savedInStore: !!savedSettings, // To inform the user
       };
       
       ctx.body = {
@@ -150,14 +110,14 @@ const controller = ({ strapi }) => ({
         return;
       }
       
-      // Content type'ın var olduğunu doğrula
+      // Verify that the content type exists
       if (!strapi.contentTypes[contentType]) {
         ctx.status = 400;
         ctx.body = { error: `Content type "${contentType}" not found` };
         return;
       }
       
-      // Dynamic zone field'ın var olduğunu doğrula
+      // Verify that the dynamic zone field exists
       const attributes = strapi.contentTypes[contentType].attributes || {};
       if (!attributes[dynamicZoneField] || attributes[dynamicZoneField].type !== 'dynamiczone') {
         ctx.status = 400;
@@ -165,7 +125,7 @@ const controller = ({ strapi }) => ({
         return;
       }
       
-      // Strapi Store API kullanarak kalıcı kaydet (veritabanına)
+      // Save permanently using Strapi Store API (to database)
       const pluginStore = strapi.store({
         environment: '',
         type: 'plugin',
@@ -180,7 +140,7 @@ const controller = ({ strapi }) => ({
         },
       });
       
-      // Runtime config'i de güncelle
+      // Also update runtime config
       strapi.config.set('plugin::copy-any-component.contentType', contentType);
       strapi.config.set('plugin::copy-any-component.dynamicZoneField', dynamicZoneField);
       
@@ -207,24 +167,24 @@ const controller = ({ strapi }) => ({
       const contentType = pluginConfig.contentType || 'api::page.page';
       const dynamicZoneField = pluginConfig.dynamicZoneField || 'sections';
       
-      // Content type'ın kind'ını kontrol et
+      // Check the content type's kind
       const contentTypeModel = strapi.contentTypes[contentType];
       const isSingleType = contentTypeModel?.kind === 'singleType';
       
       let pages;
       if (isSingleType) {
-        // SingleType için findOne kullan
+        // Use findOne for SingleType
         try {
           const page = await strapi.entityService.findOne(contentType, {
             populate: [dynamicZoneField],
           });
           pages = page ? [page] : [];
         } catch (error) {
-          // Eğer singleType henüz oluşturulmamışsa boş array döndür
+          // If singleType hasn't been created yet, return empty array
           pages = [];
         }
       } else {
-        // CollectionType için findMany kullan
+        // Use findMany for CollectionType
         pages = await strapi.entityService.findMany(contentType, {
           populate: [dynamicZoneField],
         });
@@ -257,7 +217,7 @@ const controller = ({ strapi }) => ({
     let page;
     
     if (isSingleType) {
-      // SingleType için direkt findOne kullan (ID gerekmez)
+      // Use findOne directly for SingleType (ID not required)
       try {
         page = await strapi.entityService.findOne(contentType, {
           populate: [dynamicZoneField],
@@ -268,7 +228,7 @@ const controller = ({ strapi }) => ({
         return;
       }
     } else {
-      // CollectionType için documentId ile bul
+      // Find CollectionType by documentId
       const numericId = parseInt(pageId);
       if (!isNaN(numericId)) {
         try {
@@ -363,7 +323,7 @@ const controller = ({ strapi }) => ({
         }
       }
       
-      // CollectionType için documentId ile bul
+      // Find CollectionType by documentId
       const numericId = parseInt(id);
       if (!isNaN(numericId)) {
         try {
@@ -435,25 +395,6 @@ const controller = ({ strapi }) => ({
     }
   },
 
-  async moveSections(ctx) {
-    const { sourcePageId, targetPageId } = ctx.params;
-    const { sectionIndices } = ctx.request.body || {};
-    
-    const service = strapi.plugin("my-simple-plugin").service("component-copy");
-    const result = await service.moveSectionsToPage(
-      parseInt(sourcePageId),
-      parseInt(targetPageId),
-      sectionIndices
-    );
-
-    if (result.error) {
-      ctx.status = 400;
-      ctx.body = result;
-    } else {
-      ctx.body = result;
-    }
-  },
-
   async updatePageSections(ctx) {
     let { pageId } = ctx.params;
     const { sections } = ctx.request.body || {};
@@ -508,7 +449,7 @@ const controller = ({ strapi }) => ({
         }
       }
       
-      // CollectionType için documentId ile bul
+      // Find CollectionType by documentId
       const numericId = parseInt(id);
       if (!isNaN(numericId)) {
         try {
@@ -568,8 +509,8 @@ const controller = ({ strapi }) => ({
     const contentType = pluginConfig.contentType || 'api::page.page';
     
     try {
-      // Strapi 5'te documentService kullanılıyor
-      // pageId zaten documentId string'i (frontend'den gönderiliyor)
+      // In Strapi 5, documentService is used
+      // pageId is already a documentId string (sent from frontend)
       const documentService = strapi.documents(contentType);
       const publishedPage = await documentService.publish(pageId);
 
@@ -597,7 +538,7 @@ module.exports = {
   async bootstrap({ strapi }) {
     strapi.log.info("🚀 Copy Any Component Plugin bootstrapped!");
     
-    // Strapi Store'dan kaydedilmiş ayarları oku ve runtime config'e uygula
+    // Read saved settings from Strapi Store and apply to runtime config
     try {
       const pluginStore = strapi.store({
         environment: '',
@@ -695,14 +636,6 @@ module.exports = {
           method: "POST",
           path: "/pages/:sourcePageId/copy-to/:targetPageId",
           handler: "controller.copySections",
-          config: {
-            policies: [],
-          },
-        },
-        {
-          method: "POST",
-          path: "/pages/:sourcePageId/move-to/:targetPageId",
-          handler: "controller.moveSections",
           config: {
             policies: [],
           },

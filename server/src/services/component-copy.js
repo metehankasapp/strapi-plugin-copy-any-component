@@ -118,17 +118,17 @@ const service = ({ strapi }) => {
     return cleaned;
   };
 
-  // Deep populate helper - Strapi için doğru format
+  // Deep populate helper - Correct format for Strapi
   const buildDeepPopulate = () => {
-    // Strapi'de dynamic zone için en etkili populate
+    // Most effective populate for dynamic zone in Strapi
     return {
       populate: '*'
     };
   };
 
-  // Content type'dan display field'ı bul (title, name, heading vb.)
+  // Find display field from content type (title, name, heading, etc.)
   const getDisplayField = (page) => {
-    // Öncelik sırasına göre display field'ları kontrol et
+    // Check display fields in priority order
     const possibleFields = ['title', 'name', 'heading', 'label', 'displayName', 'slug'];
     for (const field of possibleFields) {
       if (page[field]) return page[field];
@@ -375,64 +375,9 @@ const service = ({ strapi }) => {
     }
   };
 
-  const moveSectionsToPage = async (sourcePageId, targetPageId, sectionIndices = null) => {
-    try {
-      const copyResult = await copySectionsToPage(
-        sourcePageId,
-        targetPageId,
-        sectionIndices
-      );
-
-      if (copyResult.error) {
-        return copyResult;
-      }
-
-      const moveConfig = getConfig();
-      const sourcePage = await strapi.entityService.findOne(
-        moveConfig.contentType,
-        sourcePageId,
-        {
-          populate: [moveConfig.dynamicZoneField],
-        }
-      );
-
-      if (!sourcePage) {
-        return { error: "Source page not found", data: null };
-      }
-
-      let updatedSections = sourcePage[moveConfig.dynamicZoneField] || [];
-
-      if (sectionIndices && Array.isArray(sectionIndices)) {
-        const sortedIndices = [...sectionIndices].sort((a, b) => b - a);
-        sortedIndices.forEach((index) => {
-          updatedSections.splice(index, 1);
-        });
-      } else {
-        updatedSections = [];
-      }
-
-      await strapi.entityService.update(moveConfig.contentType, sourcePageId, {
-        data: {
-          [moveConfig.dynamicZoneField]: updatedSections,
-        },
-      });
-
-      return {
-        error: null,
-        data: {
-          ...copyResult.data,
-          moved: true,
-        },
-      };
-    } catch (error) {
-      return { error: error.message, data: null };
-    }
-  };
-
   return {
     getPageSections,
     copySectionsToPage,
-    moveSectionsToPage,
   };
 };
 
