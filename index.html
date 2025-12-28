@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>Copy Any Component - Strapi Plugin | Drag & Drop Components</title>
+    <meta name="title" content="Copy Any Component - Strapi Plugin | Drag & Drop Components" />
+    <meta name="description" content="A powerful Strapi plugin that allows you to copy and reorder components (sections) between pages using an intuitive drag-and-drop interface. No code required! Works with any content type and dynamic zone." />
+    <meta name="keywords" content="strapi, plugin, copy component, drag drop, dynamic zone, cms, content management, strapi 5, component copy, no code" />
+    <meta name="author" content="metehankasapp" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://github.com/metehankasapp/strapi-plugin-copy-any-component" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://github.com/metehankasapp/strapi-plugin-copy-any-component" />
+    <meta property="og:title" content="Copy Any Component - Strapi Plugin | Drag & Drop Components" />
+    <meta property="og:description" content="A powerful Strapi plugin that allows you to copy and reorder components (sections) between pages using an intuitive drag-and-drop interface. No code required!" />
+    <meta property="og:image" content="plugin-image.png" />
+    <meta property="og:site_name" content="Copy Any Component Plugin" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://github.com/metehankasapp/strapi-plugin-copy-any-component" />
+    <meta name="twitter:title" content="Copy Any Component - Strapi Plugin | Drag & Drop Components" />
+    <meta name="twitter:description" content="A powerful Strapi plugin that allows you to copy and reorder components between pages using drag-and-drop. No code required!" />
+    <meta name="twitter:image" content="plugin-image.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/avif" href="w=256,quality=90,fit=scale-down.avif" />
+    <link rel="apple-touch-icon" href="w=256,quality=90,fit=scale-down.avif" />
+    
+    <!-- Schema.org structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Copy Any Component",
+      "applicationCategory": "CMS Plugin",
+      "operatingSystem": "Node.js",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "A powerful Strapi plugin that allows you to copy and reorder components (sections) between pages using an intuitive drag-and-drop interface. No code required! Works with any content type and dynamic zone.",
+      "url": "https://github.com/metehankasapp/strapi-plugin-copy-any-component",
+      "author": {
+        "@type": "Person",
+        "name": "metehankasapp"
+      },
+      "license": "https://opensource.org/licenses/MIT",
+      "softwareVersion": "1.0.0",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "ratingCount": "1"
+      },
+      "featureList": [
+        "Drag & Drop Interface",
+        "Component Copying",
+        "Component Reordering",
+        "Auto-Detection",
+        "Zero-Code Configuration",
+        "Media Support",
+        "Draft/Publish System"
+      ]
+    }
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
+        background: linear-gradient(135deg, #1b1464 0%, #271fe0 100%);
+        color: #ffffff;
+        min-height: 100vh;
+        padding: 0;
+        overflow-y: auto;
+        position: relative;
+      }
+
+      .github-fork-ribbon {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        overflow: hidden;
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .github-fork-ribbon a {
+        position: absolute;
+        top: 60px;
+        right: -60px;
+        transform: rotate(45deg);
+        background: #4945ff;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 80px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        pointer-events: auto;
+        transition: all 0.3s;
+        white-space: nowrap;
+      }
+
+      .github-fork-ribbon a:hover {
+        background: #7b79ff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 80px 40px 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        align-items: center;
+      }
+
+      .left {
+        text-align: center;
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1 {
+        font-size: 3.5em;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 24px;
+        letter-spacing: -2px;
+        line-height: 1.1;
+      }
+
+      .subtitle {
+        font-size: 1.15em;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 400;
+        margin-bottom: 24px;
+        line-height: 1.6;
+        max-width: 100%;
+      }
+
+      .install-box {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+        max-width: 600px;
+        width: 100%;
+      }
+
+      .install-box code {
+        color: #a5f3fc;
+        font-size: 1em;
+        font-family: "Courier New", monospace;
+      }
+
+      .copy-btn {
+        background: #4945ff;
+        border: none;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85em;
+        transition: all 0.2s;
+        font-weight: 500;
+      }
+
+      .copy-btn:hover {
+        background: #7b79ff;
+      }
+
+      
+
+      .right {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .demo-img {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        object-fit: contain;
+        display: block;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          gap: 40px;
+          padding: 60px 20px 40px;
+        }
+
+        h1 {
+          font-size: 2.5em;
+        }
+
+        .left {
+          text-align: left;
+        }
+
+        .github-fork-ribbon {
+          width: 150px;
+          height: 150px;
+        }
+
+        .github-fork-ribbon a {
+          top: 45px;
+          right: -45px;
+          padding: 6px 60px;
+          font-size: 11px;
+        }
+      }
+
+      .links {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .link {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 0.9em;
+        transition: color 0.2s;
+      }
+
+      .link:hover {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="github-fork-ribbon">
+      <a href="https://github.com/metehankasapp/strapi-plugin-copy-any-component" target="_blank" rel="noopener noreferrer">
+        ⭐ Star on GitHub
+      </a>
+    </div>
+    <div class="container">
+      <div class="left">
+        <h1>Copy Any Component</h1>
+        <p class="subtitle">
+          Drag & drop components between dynamic zones in Strapi 5. Zero-code
+          configuration via admin panel.
+        </p>
+
+        <div class="install-box">
+          <code id="installCmd"
+            >npm install strapi-plugin-copy-any-component</code
+          >
+          <button class="copy-btn" onclick="copyInstall()">Copy</button>
+        </div>
+
+       
+
+        <div class="links">
+          <a href="https://github.com/metehankasapp/strapi-plugin-copy-any-component" class="link" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a
+            href="https://www.npmjs.com/package/strapi-plugin-copy-any-component"
+            class="link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >NPM</a
+          >
+          <a href="https://github.com/metehankasapp/strapi-plugin-copy-any-component#readme" class="link" target="_blank" rel="noopener noreferrer">Documentation</a>
+        </div>
+      </div>
+
+      <div class="right">
+        <img
+          src="plugin-image.png"
+          alt="Copy Any Component Plugin Interface"
+          class="demo-img"
+        />
+      </div>
+    </div>
+
+    <script>
+      function copyInstall() {
+        const text = document.getElementById("installCmd").textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.querySelector(".copy-btn");
+          btn.textContent = "Copied!";
+          setTimeout(() => {
+            btn.textContent = "Copy";
+          }, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>
